@@ -18,7 +18,7 @@ public class DownloadsTest {
         downloader = new Downloader();
     }
 
-    @When("^enters an invalid (//[.*//])$")
+    @When("^enters an \"([^\"]*)\"$")
     public void invalidUrl (String url) throws Exception {
         downloader.enterUrl(url);
     }
@@ -27,11 +27,6 @@ public class DownloadsTest {
     @Then("^print error$")
     public void printError() throws Throwable {
         assertEquals(false,downloader.state);
-    }
-
-    @When("^enters an valid (//[.*//])$")
-    public void entersAndValidUrl(String url) throws Throwable {
-        downloader.enterUrl(url);
     }
 
 
