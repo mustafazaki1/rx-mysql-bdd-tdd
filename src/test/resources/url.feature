@@ -21,4 +21,4 @@ Feature: url_download
       | "http://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java"                     |
       | "https://docs.google.com/spreadsheets/d/1Cc-gCUqx4wWHepvNBRmrgydNrCwZ085GQp-IrxauXnA/edit#gid=823786479" |
       | "https://outlook.office.com/owa/?realm=cis.asu.edu.eg&exsvurl=1&ll-cc=1033&modurl=0"                     |
-      | "https://github.com/mustafazaki1/rx-mysql-bdd-tdd                                                        |
+      | "https://github.com/mustafazaki1/rx-mysql-bdd-tdd"                                                        |
