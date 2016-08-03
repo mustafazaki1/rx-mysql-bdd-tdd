@@ -20,32 +20,15 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `urldata`.`Links` (
   `ID` INT NOT NULL ,
+  `USER_ID` INT NOT NULL ,
   `Url` VARCHAR(300) NOT NULL ,
   `Date` DATETIME NULL ,
-  PRIMARY KEY (`ID`) )
+  PRIMARY KEY (`ID`) ,
+  FOREIGN KEY (`USER_ID`) REFERENCES `urldata`.'User'('ID') ON DELETE CASCADE )
 ENGINE = InnoDB;
 
 
--- -----------------------------------------------------
--- Table `urldata`.`User_has_Links`
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `urldata`.`User_has_Links` (
-  `User_ID` INT NOT NULL ,
-  `Links_ID` INT NOT NULL ,
-  PRIMARY KEY (`User_ID`, `Links_ID`) ,
-  INDEX `fk_User_has_Links_Links1_idx` (`Links_ID` ASC) ,
-  INDEX `fk_User_has_Links_User_idx` (`User_ID` ASC) ,
-  CONSTRAINT `fk_User_has_Links_User`
-    FOREIGN KEY (`User_ID` )
-    REFERENCES `urldata`.`User` (`ID` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_User_has_Links_Links1`
-    FOREIGN KEY (`Links_ID` )
-    REFERENCES `urldata`.`Links` (`ID` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+
 
 USE `urldata` ;
 
