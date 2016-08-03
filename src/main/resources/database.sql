@@ -1,7 +1,7 @@
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-
+DROP SCHEMA `urldata`;
 CREATE SCHEMA IF NOT EXISTS `urldata` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
 USE `urldata` ;
 
@@ -19,12 +19,12 @@ ENGINE = InnoDB;
 -- Table `urldata`.`Links`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `urldata`.`Links` (
-  `ID` INT NOT NULL ,
-  `USER_ID` INT NOT NULL ,
+  `ID` INT unsigned NOT NULL ,
+  `USER_ID` INT unsigned NOT NULL ,
   `Url` VARCHAR(300) NOT NULL ,
   `Date` DATETIME NULL ,
   PRIMARY KEY (`ID`) ,
-  FOREIGN KEY (`USER_ID`) REFERENCES `urldata`.'User'('ID') ON DELETE CASCADE )
+  FOREIGN KEY (`USER_ID`) REFERENCES `urldata`.`User`(`ID`) ON DELETE CASCADE )
 ENGINE = InnoDB;
 
 
