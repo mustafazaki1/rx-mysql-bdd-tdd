@@ -14,6 +14,6 @@ import cucumber.api.junit.Cucumber;
 import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
-@Cucumber.Options(strict = true, format = {"html:target/cucumber-html-report"})
+@Cucumber.Options(features = {"src\\test\\resources\\"})
 public class RunCukesTest {
 }
