@@ -9,7 +9,7 @@ USE `urldata` ;
 -- Table `urldata`.`User`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `urldata`.`User` (
-  `ID` INT NOT NULL ,
+  `ID` INT unsigned auto_increment NOT NULL      ,
   `Name` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`ID`) )
 ENGINE = InnoDB;
