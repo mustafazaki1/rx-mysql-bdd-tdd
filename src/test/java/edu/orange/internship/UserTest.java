@@ -14,7 +14,8 @@ public class UserTest {
     public void findExistNameTest() throws Exception {
         String usernames[] = {"rem", "mustafa", "kee"};
         for (String username : usernames) {
-            Boolean result = UserDao.findName(username);
+            User user=new User();
+            Boolean result = UserDao.findName(username,user);
             assertTrue(username, result);
         }
     }
@@ -23,7 +24,8 @@ public class UserTest {
     public void findNonExistNameTest() throws Exception {
         String usernames[] = {"zetamoo", "tsunami", "moha"};
         for (String username : usernames) {
-            Boolean result = UserDao.findName(username);
+            User user=new User();
+            Boolean result = UserDao.findName(username,user);
             assertFalse(username, result);
         }
     }
@@ -33,7 +35,6 @@ public class UserTest {
         String usernames[] = {"zr3", "ts1", "mwq2a"};
         for (String username : usernames) {
             Boolean result = false;
-
             result = UserDao.addUser(username);
             assertTrue("Add Failed", result);
         }
