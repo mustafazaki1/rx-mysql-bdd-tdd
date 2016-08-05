@@ -8,7 +8,7 @@ import java.util.Date;
 public class Link {
     private String url;
     private Date date;
-
+    private User user;
     public User getUser() {
         return user;
     }
@@ -16,8 +16,6 @@ public class Link {
     public void setUser(User user) {
         this.user = user;
     }
-
-    private User user;
 
     public String getUrl() {
         return url;

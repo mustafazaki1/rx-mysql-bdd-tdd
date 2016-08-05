@@ -19,7 +19,7 @@ ENGINE = InnoDB;
 -- Table `urldata`.`Links`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `urldata`.`Links` (
-  `ID` INT unsigned NOT NULL ,
+  `ID` INT unsigned auto_increment NOT NULL ,
   `USER_ID` INT unsigned NOT NULL ,
   `Url` VARCHAR(300) NOT NULL ,
   `Date` DATETIME NULL ,
