@@ -7,7 +7,8 @@ import java.sql.*;
  */
 public class UserDao {
     private static String root="root";
-    private static String password="01092933945Sasa";
+    private static String password="";
+
     public static Boolean findName( String username,User user) throws SQLException {
         Boolean result = false;
         final String connectionString = "jdbc:mysql://localhost:3306/urldata";
@@ -26,7 +27,7 @@ public class UserDao {
                 user.setId(foundUsers.getInt("id"));
             }
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
             result = false;
         }finally {
             if(checkPreparedStatement != null)
@@ -45,13 +46,13 @@ public class UserDao {
         Connection connection = null;
         PreparedStatement checkPreparedStatement = null;
         try {
-            connection = DriverManager.getConnection(connectionString, "root", "01092933945Sasa");
+            connection = DriverManager.getConnection(connectionString, root, password);
             checkPreparedStatement = connection.prepareStatement(checkStatement);
             checkPreparedStatement.setString(1, username);
             checkPreparedStatement.execute();
             result = true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
             result = false;
         } finally {
             if (checkPreparedStatement != null)
