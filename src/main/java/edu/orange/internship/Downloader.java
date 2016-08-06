@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +24,12 @@ public class Downloader {
         FileOutputStream fout = null;
         try {
             in = new BufferedInputStream(new URL(urlString).openStream());
+            String extension = filename.substring(filename.lastIndexOf('.'));
+            String fileNameWithoutExtn = filename.substring(0, filename.lastIndexOf('.'));
+            Integer value = 1;
+            while (Files.exists(Paths.get(filename))){
+                filename = fileNameWithoutExtn + value.toString() + extension;
+            }
             fout = new FileOutputStream(filename);
 
             final byte data[] = new byte[1024];
