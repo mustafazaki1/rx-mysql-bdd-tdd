@@ -40,12 +40,11 @@ public class UserDao {
     public static Boolean addUser(String username) throws SQLException {
         Boolean result;
         final String connectionString = "jdbc:mysql://localhost:3306/urldata";
-        final String checkStatement = " insert into User (Name)"
-                + " values (?)";
+        final String checkStatement = " insert into User (Name)" + " values (?)";
         Connection connection = null;
         PreparedStatement checkPreparedStatement = null;
         try {
-            connection = DriverManager.getConnection(connectionString, "root", "01092933945Sasa");
+            connection = DriverManager.getConnection(connectionString, root , password );
             checkPreparedStatement = connection.prepareStatement(checkStatement);
             checkPreparedStatement.setString(1, username);
             checkPreparedStatement.execute();
