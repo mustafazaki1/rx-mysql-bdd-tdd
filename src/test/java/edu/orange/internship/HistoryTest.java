@@ -2,14 +2,10 @@ package edu.orange.internship;
 
 import org.junit.Test;
 
-import javax.jws.soap.SOAPBinding;
-
 import java.util.ArrayList;
-import java.sql.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Yusuf on 8/6/2016.

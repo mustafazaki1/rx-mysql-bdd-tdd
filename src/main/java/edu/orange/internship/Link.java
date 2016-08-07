@@ -1,6 +1,6 @@
 package edu.orange.internship;
 
-import java.sql.Date;
+import java.util.Date;
 
 /**
  * Created by Mustafa on 8/3/2016.
