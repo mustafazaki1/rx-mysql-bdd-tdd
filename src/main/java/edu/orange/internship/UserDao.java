@@ -41,8 +41,7 @@ public class UserDao {
     public static Boolean addUser(String username) throws SQLException {
         Boolean result;
         final String connectionString = "jdbc:mysql://localhost:3306/urldata";
-        final String checkStatement = " insert into User (Name)"
-                + " values (?)";
+        final String checkStatement = " insert into User (Name)" + " values (?)";
         Connection connection = null;
         PreparedStatement checkPreparedStatement = null;
         try {
