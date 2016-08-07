@@ -8,7 +8,7 @@ import java.sql.*;
 public class UserDao {
     private static String root="root";
     private static String password="";
-
+	
     public static Boolean findName( String username,User user) throws SQLException {
         Boolean result = false;
         final String connectionString = "jdbc:mysql://localhost:3306/urldata";
