@@ -1,9 +1,10 @@
 package edu.orange.internship;
 
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -14,86 +15,113 @@ import java.util.Scanner;
 public class Manager {
 
     private User user;
-    private final String welcome = "Welcome, ";
-    private final String welcomeBack = "Welcome back, ";
-    public Manager(){
+    private final String WELCOME = "Welcome, ";
+    private final String WELCOMEBACK = "Welcome back, ";
+    private Downloader downloader;
+    private Scanner scanner;
+
+    public Manager() throws Exception {
         user = new User();
+        downloader = new Downloader();
+        scanner = new Scanner(System.in);
     }
 
-    public void work(InputStream inputStream, PrintStream outputStream) throws Exception{
-        try(Scanner scanner = new Scanner(inputStream)) {
-            System.setOut(outputStream);
+    public void work() throws Exception {
 
-            String username = "";
-            System.out.print("Please enter your name:");
-            username = scanner.next();
-            if (!UserDao.findName(username, user)) {
-                UserDao.addUser(username);
-                UserDao.findName(username, user);
-                System.out.println(welcome + user.getName());
-            }else{
-                System.out.println(welcomeBack + user.getName());
-            }
+        String username;
+        System.out.print("Please enter your name:");
+        username = scanner.next();
+        logging(username);
 
-            while (scanner.hasNext()) {
-                String inputCommand = scanner.next();
-                switch (inputCommand) {
-                    case "download":
-                    {
-                        String type = scanner.next();
-                        if("file".equals(type)){
-                            downloadFile(scanner);
-                        }else if("url".equals(type)){
-                            try {
-                                downloadURL(scanner);
-                            }catch (IllegalArgumentException e){
-                                System.err.println(e.getMessage());
-                                scanner.nextLine();
-                                help();
-                            }
-                        }else
-                            help();
-                        break;
-                    }
-                    case "list":
-                    case "history":
-                    {
-                        history(scanner);
-                        break;
-                    }
-                    case "help":
-                    case "/?":
-                    default:
+        while (scanner.hasNext()) {
+            String inputCommand = scanner.next();
+            switch (inputCommand) {
+                case "download": {
+                    String type = scanner.next();
+                    if ("file".equals(type)) {
+                        downloadFile(scanner.nextLine());
+                    } else if ("url".equals(type)) {
+                        downloadURL(scanner.nextLine());
+                    } else
                         help();
+                    break;
                 }
+                case "list":
+                case "history": {
+                    history(scanner.nextLine());
+                    break;
+                }
+                case "help":
+                case "/?":
+                default:
+                    help();
             }
         }
     }
 
-    private void downloadURL(Scanner inputScanner) throws Exception{
-        Downloader downloader = new Downloader();
+    public void logging(String username) throws SQLException {
+        if (!UserDao.findName(username, user)) {
+            UserDao.addUser(username);
+            UserDao.findName(username, user);
+            System.out.println(WELCOME + user.getName());
+        } else {
+            System.out.println(WELCOMEBACK + user.getName());
+        }
+    }
+
+    public Boolean downloadURL(String command) {
+        String arguments[] = command.split("\\s+");
         LinkDao linkDao = new LinkDao();
         Link link = new Link();
-        link.setUrl(inputScanner.next());
+        link.setUrl(arguments[0]);
         link.setUser(user);
-        if(!downloader.enterUrl(link.getUrl())){
-            throw new IllegalArgumentException();
+        Request request = new Request();
+        request.setFilename(arguments[1]);
+        try {
+            request.setUri(arguments[0]);
+        } catch (URISyntaxException ex) {
+            System.out.println("Invalid url!");
+            System.err.println(ex.getMessage());
+            return false;
         }
-        downloader.download(link.getUrl().substring(link.getUrl().lastIndexOf('/')+1, link.getUrl().length()));
+        try {
+            List<DownloadedBytes> downloaded = downloader.download(request);
+            for (DownloadedBytes downloadedBytes : downloaded) {
+                downloader.write(downloadedBytes);
+            }
+        } catch (IOException ex) {
+            System.out.println("An error occurred while downloading!");
+            System.err.println(ex.getMessage());
+            return false;
+        }
+
         link.setDate(new Date());
+        try {
+            linkDao.addLink(link);
+        } catch (SQLException ex) {
+            System.out.println("File downloaded, but an error occurred while saving!");
+            System.err.println(ex.getMessage());
+        }
+        return true;
     }
 
-    private void downloadFile(Scanner inputScanner) throws Exception{
+    public void downloadFile(String command) {
         // ToDo rx-java
     }
 
-    private void history(Scanner inputScanner) throws Exception{
+    public void history(String command) {
         // ToDo put some code here :v
     }
 
-    private void help() throws Exception{
-        List<String> helpText = Files.readAllLines(Paths.get(this.getClass().getResource("help.txt").toURI()));
-        for (String line : helpText)
-            System.out.println(line);
+    public void help() {
+        List<String> helpText;
+        try {
+            helpText = Files.readAllLines(Paths.get(this.getClass().getResource("help.txt").toURI()));
+        }catch (Exception ex){
+            System.out.println("An error occurred while reading help file!");
+            System.err.println(ex.getMessage());
+            return;
+        }
+        helpText.forEach(System.out::println);
     }
 }

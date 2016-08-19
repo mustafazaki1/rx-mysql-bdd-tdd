@@ -1,38 +1,40 @@
 package edu.orange.internship;
 
-import cucumber.api.PendingException;
-import cucumber.api.java.en.*;
-import cucumber.api.java.eo.Do;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Mustafa on 8/1/2016.
  */
 public class DownloadsTest {
 
-    private Downloader downloader;
+    private Manager manager;
+    String command;
 
-    @Given("^Downloader$")
+    @Given("^User$")
     public void downloader() throws Throwable {
-        downloader = new Downloader();
+        manager = new Manager();
     }
 
     @When("^enters an \"([^\"]*)\"$")
-    public void invalidUrl (String url) throws Exception {
-        downloader.enterUrl(url);
+    public void invalidUrl (String url) throws Throwable {
+        command = url + " temp.html";
     }
 
 
     @Then("^print error$")
     public void printError() throws Throwable {
-        assertEquals(false,downloader.state);
+        assertFalse(manager.downloadURL(command));
     }
 
 
     @Then("^download$")
     public void download() throws Throwable {
-        assertEquals(true,downloader.download("out.html"));
+        assertTrue(manager.downloadURL(command));
     }
 
 }

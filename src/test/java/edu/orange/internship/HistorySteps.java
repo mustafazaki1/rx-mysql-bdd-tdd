@@ -10,7 +10,7 @@ public class HistorySteps {
     User currentUser;
     @Given("^a user$")
     public void user() throws Throwable {
-        currentUser=new User();
+        currentUser =new User();
     }
 
     @When("^he enters \"([^\"]*)\"$")

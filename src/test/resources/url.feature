@@ -1,7 +1,7 @@
 Feature: url_download
 
   Scenario Outline: url_is_invalid
-    Given Downloader
+    Given User
     When enters an <invalid url>
     Then print error
     Examples:
@@ -13,7 +13,7 @@ Feature: url_download
       | "dfgkfpgd"      |
 
   Scenario Outline: url is valid
-    Given Downloader
+    Given User
     When enters an <valid url>
     Then download
     Examples:
