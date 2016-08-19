@@ -1,11 +1,13 @@
 package edu.orange.internship;
 
+import rx.Observable;
+import rx.schedulers.Schedulers;
+
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by KEE on 19-Aug-16.
@@ -13,9 +15,8 @@ import java.util.List;
 public class Downloader {
     private final int LENGTH = 1024;
 
-    public List<Request> readFile(String file) throws Exception {
-        String line;
-        List<Request> result = new ArrayList<>();
+    public Observable<Request> readFile(String file) throws IOException {
+        Observable<Request> result;
         BufferedReader bufferedReader;
 
 
@@ -28,41 +29,70 @@ public class Downloader {
                 )
         );
 
-        while ((line = bufferedReader.readLine()) != null) {
-            Request newRequest = new Request();
-            String arguments[] = line.split("\\s+");
-            if (arguments.length != 2) {
-                throw new IllegalArgumentException();
+        result = Observable.create(subscriber -> {
+            String line;
+            try {
+
+                while ((line = bufferedReader.readLine()) != null) {
+                    Request newRequest = new Request();
+                    String arguments[] = line.trim().split("\\s+");
+                    if (arguments.length != 2) {
+                        System.err.println("Wrong formatted line: " + line);
+                        continue;
+                    }
+                    try {
+                        newRequest.setUri(arguments[0]);
+                    }catch (URISyntaxException ex){
+                        System.err.println("Wrong URI: " + arguments[0]);
+                        continue;
+                    }
+                    newRequest.setFilename(arguments[1]);
+                    subscriber.onNext(newRequest);
+                }
+                subscriber.onCompleted();
+            }catch (IOException ex){
+                subscriber.onError(ex);
             }
-            newRequest.setUri(arguments[0]);
-            newRequest.setFilename(arguments[1]);
-            result.add(newRequest);
-        }
+        });
 
+        result.subscribeOn(Schedulers.io());
         return result;
     }
 
-    public List<DownloadedBytes> download(Request request) throws IOException{
-        List<DownloadedBytes> result = new ArrayList<>();
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(
-                request.getUri().toURL().openStream()
-        );
-        byte current[] = new byte[LENGTH];
-        int count;
+    public Observable<DownloadedBytes> download(final Request request) {
+        Observable<DownloadedBytes> result = Observable.create(
+                subscriber -> {
+                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                            request.getUri().toURL().openStream()
+                    )) {
+                        byte current[] = new byte[LENGTH];
+                        int count;
 
-        while ((count = bufferedInputStream.read(current,0,LENGTH)) != -1){
-            DownloadedBytes downloadedBytes = new DownloadedBytes();
-            downloadedBytes.setFilename(request.getFilename());
-            downloadedBytes.setCount(count);
-            downloadedBytes.setBytes(current);
-            result.add(downloadedBytes);
-        }
+                        while ((count = bufferedInputStream.read(current, 0, LENGTH)) != -1) {
+                            DownloadedBytes downloadedBytes = new DownloadedBytes();
+                            downloadedBytes.setFilename(request.getFilename());
+                            downloadedBytes.setCount(count);
+                            downloadedBytes.setBytes(current);
+                            subscriber.onNext(downloadedBytes);
+                        }
+                        subscriber.onCompleted();
+                    } catch (IOException ex) {
+                        subscriber.onError(ex);
+                    }
+                });
+        result.subscribeOn((Schedulers.io()));
         return result;
     }
 
-    public void write(DownloadedBytes downloadedBytes) throws IOException{
-        FileOutputStream output = new FileOutputStream(downloadedBytes.getFilename(), true);
-        output.write(downloadedBytes.getBytes(),0,downloadedBytes.getCount());
+    public Observable write(final DownloadedBytes downloadedBytes) {
+        return Observable.create(subscriber -> {
+            try (FileOutputStream output = new FileOutputStream(downloadedBytes.getFilename(), true)){
+                output.write(downloadedBytes.getBytes(), 0, downloadedBytes.getCount());
+                subscriber.onCompleted();
+            }catch (IOException ex){
+                subscriber.onError(ex);
+            }
+        });
     }
 
 }

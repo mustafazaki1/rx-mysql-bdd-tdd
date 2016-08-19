@@ -1,5 +1,7 @@
 package edu.orange.internship;
 
+import rx.Subscriber;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -39,18 +41,20 @@ public class Manager {
                 case "download": {
                     String type = scanner.next();
                     if ("file".equals(type)) {
-                        downloadFile(scanner.nextLine());
+                        downloadFile(scanner.nextLine().trim());
                     } else if ("url".equals(type)) {
-                        downloadURL(scanner.nextLine());
+                        downloadURL(scanner.nextLine().trim());
                     } else
                         help();
                     break;
                 }
                 case "list":
                 case "history": {
-                    history(scanner.nextLine());
+                    history(scanner.nextLine().trim());
                     break;
                 }
+                case "exit":
+                    return;
                 case "help":
                 case "/?":
                 default:
@@ -71,6 +75,9 @@ public class Manager {
 
     public Boolean downloadURL(String command) {
         String arguments[] = command.split("\\s+");
+        if(arguments.length != 2){
+            return false;
+        }
         LinkDao linkDao = new LinkDao();
         Link link = new Link();
         link.setUrl(arguments[0]);
@@ -84,16 +91,26 @@ public class Manager {
             System.err.println(ex.getMessage());
             return false;
         }
-        try {
-            List<DownloadedBytes> downloaded = downloader.download(request);
-            for (DownloadedBytes downloadedBytes : downloaded) {
-                downloader.write(downloadedBytes);
-            }
-        } catch (IOException ex) {
-            System.out.println("An error occurred while downloading!");
-            System.err.println(ex.getMessage());
-            return false;
-        }
+
+        downloader.download(request)
+                .flatMap(downloadedBytes -> downloader.write(downloadedBytes))
+                .subscribe(new Subscriber(){
+
+                    @Override
+                    public void onCompleted() {
+                        System.out.println("File " + request.getFilename() + " has been downloaded!");
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        System.err.println(throwable.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(Object o) {
+
+                    }
+                });
 
         link.setDate(new Date());
         try {
@@ -106,11 +123,39 @@ public class Manager {
     }
 
     public void downloadFile(String command) {
-        // ToDo rx-java
+        try {
+            downloader.readFile(command)
+                    .flatMap(request -> downloader.download(request))
+                    .flatMap(downloadedBytes -> downloader.write(downloadedBytes))
+                    .subscribe(new Subscriber() {
+                        @Override
+                        public void onCompleted() {
+                            System.out.println("Finished downloading files from " + command);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            System.err.println(throwable.getMessage());
+                        }
+
+                        @Override
+                        public void onNext(Object o) {
+
+                        }
+                    });
+        }catch (IOException ex){
+            System.out.println("Wrong file path!");
+            System.err.println(ex.getMessage());
+        }
     }
 
     public void history(String command) {
-        // ToDo put some code here :v
+        try {
+            LinkDao.getUserHistory(user).forEach(System.out::println);
+        }catch (SQLException ex){
+            System.out.println("Failed to view user history!");
+            System.err.println(ex.getMessage());
+        }
     }
 
     public void help() {
