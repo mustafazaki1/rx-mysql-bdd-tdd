@@ -59,7 +59,12 @@ public class Downloader {
         return result;
     }
 
-    public Observable<DownloadedBytes> download(final Request request) {
+    public Observable download (final Request request){
+        return read(request)
+                .concatMap(downloadedBytes -> write(request,downloadedBytes));
+    }
+
+    public Observable<DownloadedBytes> read(final Request request) {
         Observable<DownloadedBytes> result = Observable.create(
                 subscriber -> {
                     try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
@@ -70,7 +75,6 @@ public class Downloader {
 
                         while ((count = bufferedInputStream.read(current, 0, LENGTH)) != -1) {
                             DownloadedBytes downloadedBytes = new DownloadedBytes();
-                            downloadedBytes.setFilename(request.getFilename());
                             downloadedBytes.setCount(count);
                             downloadedBytes.setBytes(current);
                             subscriber.onNext(downloadedBytes);
@@ -84,9 +88,9 @@ public class Downloader {
         return result;
     }
 
-    public Observable write(final DownloadedBytes downloadedBytes) {
+    public Observable write(final Request request,final DownloadedBytes downloadedBytes) {
         return Observable.create(subscriber -> {
-            try (FileOutputStream output = new FileOutputStream(downloadedBytes.getFilename(), true)){
+            try (FileOutputStream output = new FileOutputStream(request.getFilename(), true)){
                 output.write(downloadedBytes.getBytes(), 0, downloadedBytes.getCount());
                 subscriber.onCompleted();
             }catch (IOException ex){
