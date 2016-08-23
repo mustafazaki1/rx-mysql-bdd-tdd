@@ -1,61 +1,98 @@
 package edu.orange.internship;
 
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
+import rx.Observable;
+import rx.schedulers.Schedulers;
+
+import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Created by Mustafa on 8/1/2016.
+ * Created by KEE on 19-Aug-16.
  */
 public class Downloader {
+    private final int LENGTH = 1024;
 
-    private String urlString = "";
-    public Boolean state = false;
+    public Observable<Request> readFile(String file) throws IOException {
+        Observable<Request> result;
+        BufferedReader bufferedReader;
 
-    public Boolean download(String filename) throws IOException {
-        if(state == false)
-            return false;
-        BufferedInputStream in = null;
-        FileOutputStream fout = null;
-        try {
-            in = new BufferedInputStream(new URL(urlString).openStream());
-            String extension = filename.substring(filename.lastIndexOf('.'));
-            String fileNameWithoutExtn = filename.substring(0, filename.lastIndexOf('.'));
-            Integer value = 1;
-            while (Files.exists(Paths.get(filename))){
-                filename = fileNameWithoutExtn + value.toString() + extension;
-            }
-            fout = new FileOutputStream(filename);
 
-            final byte data[] = new byte[1024];
-            int count;
-            while ((count = in.read(data, 0, 1024)) != -1) {
-                fout.write(data, 0, count);
+        if (!Files.exists(Paths.get(file)))
+            throw new FileNotFoundException();
+        // Where are you spring ?!
+        bufferedReader = new BufferedReader(
+                new InputStreamReader(
+                        new FileInputStream(file), StandardCharsets.UTF_8
+                )
+        );
+
+        result = Observable.create(subscriber -> {
+            String line;
+            try {
+
+                while ((line = bufferedReader.readLine()) != null) {
+                    Request newRequest = new Request();
+                    String arguments[] = line.trim().split("\\s+");
+                    if (arguments.length != 2) {
+                        System.err.println("Wrong formatted line: " + line);
+                        continue;
+                    }
+                    try {
+                        newRequest.setUri(arguments[0]);
+                    }catch (URISyntaxException ex){
+                        System.err.println("Wrong URI: " + arguments[0]);
+                        continue;
+                    }
+                    newRequest.setFilename(arguments[1]);
+                    subscriber.onNext(newRequest);
+                }
+                subscriber.onCompleted();
+            }catch (IOException ex){
+                subscriber.onError(ex);
             }
-        }catch (IOException ioe){
-            return false;
-        }finally {
-            if (in != null) {
-                in.close();
-            }
-            if (fout != null) {
-                fout.close();
-            }
-        }
-        return true;
+        });
+
+        result.subscribeOn(Schedulers.io());
+        return result;
     }
 
-    public Boolean enterUrl(String url) {
-        urlString = url;
-        String regex = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
-        Pattern urlPattern = Pattern.compile(regex);
-        Matcher urlMatcher = urlPattern.matcher(url);
-        state = urlMatcher.matches();
-        return state;
+    public Observable<DownloadedBytes> download(final Request request) {
+        Observable<DownloadedBytes> result = Observable.create(
+                subscriber -> {
+                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                            request.getUri().toURL().openStream()
+                    )) {
+                        byte current[] = new byte[LENGTH];
+                        int count;
+
+                        while ((count = bufferedInputStream.read(current, 0, LENGTH)) != -1) {
+                            DownloadedBytes downloadedBytes = new DownloadedBytes();
+                            downloadedBytes.setFilename(request.getFilename());
+                            downloadedBytes.setCount(count);
+                            downloadedBytes.setBytes(current);
+                            subscriber.onNext(downloadedBytes);
+                        }
+                        subscriber.onCompleted();
+                    } catch (IOException ex) {
+                        subscriber.onError(ex);
+                    }
+                });
+        result.subscribeOn((Schedulers.io()));
+        return result;
     }
+
+    public Observable write(final DownloadedBytes downloadedBytes) {
+        return Observable.create(subscriber -> {
+            try (FileOutputStream output = new FileOutputStream(downloadedBytes.getFilename(), true)){
+                output.write(downloadedBytes.getBytes(), 0, downloadedBytes.getCount());
+                subscriber.onCompleted();
+            }catch (IOException ex){
+                subscriber.onError(ex);
+            }
+        });
+    }
+
 }
