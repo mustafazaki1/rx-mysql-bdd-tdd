@@ -93,7 +93,7 @@ public class Manager {
         }
 
         downloader.download(request)
-                .flatMap(downloadedBytes -> downloader.write(downloadedBytes))
+                .concatMap(downloadedBytes -> downloader.write(downloadedBytes))
                 .subscribe(new Subscriber(){
 
                     @Override
@@ -125,8 +125,8 @@ public class Manager {
     public void downloadFile(String command) {
         try {
             downloader.readFile(command)
-                    .flatMap(request -> downloader.download(request))
-                    .flatMap(downloadedBytes -> downloader.write(downloadedBytes))
+                    .concatMap(request -> downloader.download(request))
+                    .concatMap(downloadedBytes -> downloader.write(downloadedBytes))
                     .subscribe(new Subscriber() {
                         @Override
                         public void onCompleted() {

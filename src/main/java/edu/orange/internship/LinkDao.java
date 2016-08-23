@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class LinkDao {
     private static String root="root";
-    private static String password = "";
+    private static String password = "13KNWcoding";
 
     public Boolean addLink(Link link) throws SQLException {
         final String connectionString = "jdbc:mysql://localhost:3306/urldata";
