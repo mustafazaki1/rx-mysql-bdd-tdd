@@ -7,7 +7,7 @@ import java.sql.*;
  */
 public class UserDao {
     private static String root="root";
-    private static String password="";
+    private static String password="13KNWcoding";
 	
     public static Boolean findName( String username,User user) throws SQLException {
         Boolean result = false;

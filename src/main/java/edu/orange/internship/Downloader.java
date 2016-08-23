@@ -13,7 +13,7 @@ import java.nio.file.Paths;
  * Created by KEE on 19-Aug-16.
  */
 public class Downloader {
-    private final int LENGTH = 1024;
+    private final int LENGTH = 2048;
 
     public Observable<Request> readFile(String file) throws IOException {
         Observable<Request> result;
@@ -92,7 +92,7 @@ public class Downloader {
             }catch (IOException ex){
                 subscriber.onError(ex);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
 }
